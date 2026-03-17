@@ -35,3 +35,8 @@
     transition: opacity 0.3s;
   }
 }
+
+.notation {
+  color: inherit;
+  text-decoration: none;
+}

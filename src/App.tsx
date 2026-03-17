@@ -64,7 +64,7 @@ function GenericStatement(
   }>,
 ) {
   return (
-    <div id={props.id} class={`statement ${props.kind}`}>
+    <div id={props.id} class={`statement statement-${props.kind}`}>
       <h2>
         <span class="statement-kind">{props.displayKind}</span>:{" "}
         <a href={`#${props.id}`} class="statement-link">
