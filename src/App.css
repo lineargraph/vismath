@@ -1,0 +1,37 @@
+.badge {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.statement {
+}
+.statement-link {
+  text-decoration: none;
+  color: inherit;
+  &:hover,
+  &:focus {
+    .statement-id {
+      opacity: 100%;
+    }
+  }
+  .statement-id {
+    font-size: 0.8em;
+    font-family: var(--mono);
+    opacity: 0%;
+    transition: opacity 0.3s;
+  }
+}

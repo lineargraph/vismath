@@ -14,6 +14,7 @@ pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
     npins
     lix
+    typescript-language-server
     treefmtEval
   ];
 }
