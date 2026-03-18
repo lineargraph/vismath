@@ -88,6 +88,8 @@ const mathList =
     </mrow>
   );
 
+const m = (...x: ComponentChild[]) => <math>{x.map(v)}</math>;
+const mPlus = <mo>+</mo>;
 const sl = mathList("{", "}");
 const parLst = mathList("(", ")");
 const par = (...elements: VarType[]) => (
@@ -101,47 +103,59 @@ const lst = mathList(undefined, undefined);
 const set = define("set", "Sets", () => (
   <>
     <p>
-      A <em>small</em> unordered collection of things:
+      A <em>small</em> unordered collection of things, much like a list:
     </p>
     <ul>
       <li>{m(sl(1, 2, 3))}</li>
-      <li>
-        <math>{sl(1, 2, dots, 100)}</math>
-      </li>
-      <li>
-        <math>{emptySet}</math>
-      </li>
-      <li>{m(NN)}</li>
+      <li>{m(sl(1, 2, dots, 100))}</li>
+      <li>{m(emptySet)}</li>
+      <li>all natural numbers: {m(NN, mEq, sl(1, 2, 3, dots))}</li>
+      <li>and many more...</li>
     </ul>
   </>
 ));
+const mIn = notation("set.in", <mo>∈</mo>, () => {
+  const [M, x] = vs("M", "x");
+  return (
+    <>
+      For a {set} {m(M)}, we write {m(x, mIn, M)}, if {m(x)} is contained in
+      that set.
+    </>
+  );
+});
+const emptySet = notation("set.empty", <mi>∅</mi>, () => (
+  <>
+    The empty set is the set that contains no elements. It is denoted{" "}
+    {m(emptySet)}.
+  </>
+));
+const mIff = <mo>⟺</mo>;
+axiom("set.extensionality", "Set Extensionality", () => {
+  const [M, N, x] = vs("M", "N", "x");
+  return (
+    <>
+      Two {set}s are considered equal if they contain the same elements:{" "}
+      {m(mrow(M, mEq, N), mIff, par(mrow(x, mIn, M), mIff, mrow(x, mIn, N)))}
+    </>
+  );
+});
 const nat = define("nat", "Natural Numbers", () => (
   <>A natural number is a non-negative whole number.</>
 ));
-const NN = notation("NN", <mi>ℕ</mi>, ({ self }) => (
+const NN = notation("nat.NN", <mi>ℕ</mi>, ({ self }) => (
   <>
-    i will use {self} to mean the {nat}
+    i will use {self} to mean the {set} of all {nat}: {m(sl(0, 1, 2, dots))}
   </>
 ));
-const m = (...x: ComponentChild[]) => <math>{x.map(v)}</math>;
-const mIn = <mo>∈</mo>;
-const mPlus = <mo>+</mo>;
 const func = (name: string) => {
   const func = (...args: ComponentChild[]) => (
-    <>
-      <mrow>
-        <mi>{name}</mi>
-        <mo>&#x2061;</mo>
-        {parLst(...args)}
-      </mrow>
-    </>
-  );
-  return Object.assign(
-    func,
-    <>
+    <mrow>
       <mi>{name}</mi>
-    </>,
+      <mo>&#x2061;</mo>
+      {parLst(...args)}
+    </mrow>
   );
+  return Object.assign(func, <mi>{name}</mi>);
 };
 define("nat.peano", "The Peano Axioms", () => {
   const S = func("S");
@@ -181,6 +195,7 @@ define("nat.peano", "The Peano Axioms", () => {
       </ol>
       Additionally the peano axioms usually come with a definition of addition
       and order:
+      <TODO />
     </>
   );
 });
@@ -189,7 +204,6 @@ const mrow = (...args: VarType[]) => <mrow>{args.map(v)}</mrow>;
 const mEq = <mo>=</mo>;
 const mImplies = <mo>⇒</mo>;
 const injective = "injective";
-const emptySet = notation("set.empty", <mi>∅</mi>, () => <></>);
 
 const dots = <mo>…</mo>;
 const reals = define("reals", "The real numbers", () => (
@@ -208,7 +222,7 @@ const realsCauchy = define(
   "The reals as equivalence classes of cauchy sequences",
   TODO,
 );
-const RR = notation("RR", <mi>ℝ</mi>, ({ self }) => (
+const RR = notation("reals.RR", <mi>ℝ</mi>, ({ self }) => (
   <>
     i will use {self} to mean the {reals}
   </>

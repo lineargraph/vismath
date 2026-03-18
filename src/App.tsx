@@ -1,7 +1,7 @@
 import "./App.css";
 import type { PropsWithChildren } from "preact/compat";
 import { statements, type Statement } from "./reals";
-import type { ComponentChild } from "preact";
+import { h, type ComponentChild } from "preact";
 
 export function App() {
   return (
@@ -63,14 +63,20 @@ function GenericStatement(
     displayKind: string;
   }>,
 ) {
+  const level = props.id.split(".").length;
+  const HLevel = `h${Math.min(level, 6)}`;
   return (
     <div id={props.id} class={`statement statement-${props.kind}`}>
-      <h2>
-        <span class="statement-kind">{props.displayKind}</span>:{" "}
-        <a href={`#${props.id}`} class="statement-link">
-          {props.title} <span class="statement-id">[{props.id}]</span>
-        </a>
-      </h2>
+      {h(HLevel, {
+        children: (
+          <>
+            <span class="statement-kind">{props.displayKind}</span>:{" "}
+            <a href={`#${props.id}`} class="statement-link">
+              {props.title} <span class="statement-id">[{props.id}]</span>
+            </a>
+          </>
+        ),
+      })}
       {props.children}
     </div>
   );
