@@ -1,4 +1,22 @@
 import type { ComponentChild, FunctionComponent } from "preact";
+import {
+  dots,
+  mrow,
+  func,
+  mathOp,
+  mEq,
+  mIff,
+  mImplies,
+  mPlus,
+  mSet,
+  mVar,
+  par,
+  vars,
+  wrapMath,
+  type MathWrapped,
+  unwrapMath,
+  lst,
+} from "./mathutil";
 
 export interface SharedStatement {
   id: string;
@@ -40,7 +58,7 @@ function TODO() {
 }
 function notation(
   id: string,
-  child: ComponentChild,
+  child: MathWrapped,
   Body: FunctionComponent<{ self: ComponentChild }>,
 ) {
   pushStatement({
@@ -49,146 +67,95 @@ function notation(
     body: () => <Body self={child} />,
     child,
   });
-  return (
+
+  return wrapMath(
     <a href={`#${id}`} class="notation">
-      {child}
-    </a>
+      {unwrapMath(child)}
+    </a>,
   );
 }
 function axiom(id: string, title: string, body: FunctionComponent) {
   return pushStatement({ type: "axiom", title, id, body });
 }
 
-type VarType = string | number | ComponentChild;
-function vs(...elements: [VarType]): [ComponentChild];
-function vs(...elements: [VarType, VarType]): [ComponentChild, ComponentChild];
-function vs(
-  ...elements: [VarType, VarType, VarType]
-): [ComponentChild, ComponentChild, ComponentChild];
-function vs(...elements: VarType[]): ComponentChild[] {
-  return elements.map(v);
-}
-function v(element: VarType): ComponentChild {
-  if (typeof element === "number") return <mn>{element}</mn>;
-  if (typeof element === "string") return <mi>{element}</mi>;
-  return element;
-}
-const mathList =
-  (start: ComponentChild | undefined, end: ComponentChild | undefined) =>
-  (...elements: VarType[]) => (
-    <mrow>
-      {start && <mo>{start}</mo>}
-      {elements.map((el, idx) => (
-        <>
-          {idx !== 0 && <mo>,</mo>}
-          {v(el)}
-        </>
-      ))}
-      {end && <mo>{end}</mo>}
-    </mrow>
-  );
-
-const m = (...x: ComponentChild[]) => <math>{x.map(v)}</math>;
-const mPlus = <mo>+</mo>;
-const sl = mathList("{", "}");
-const parLst = mathList("(", ")");
-const par = (...elements: VarType[]) => (
-  <mrow>
-    <mo>(</mo>
-    {elements.map(v)}
-    <mo>)</mo>
-  </mrow>
-);
-const lst = mathList(undefined, undefined);
 const set = define("set", "Sets", () => (
   <>
     <p>
       A <em>small</em> unordered collection of things, much like a list:
     </p>
     <ul>
-      <li>{m(sl(1, 2, 3))}</li>
-      <li>{m(sl(1, 2, dots, 100))}</li>
-      <li>{m(emptySet)}</li>
-      <li>all natural numbers: {m(NN, mEq, sl(1, 2, 3, dots))}</li>
+      <li>{mSet(1, 2, 3)}</li>
+      <li>{mSet(1, 2, dots, 100)}</li>
+      <li>{emptySet}</li>
+      <li>all natural numbers: {mrow(NN, mEq, mSet(0, 1, 2, 3, dots))}</li>
       <li>and many more...</li>
     </ul>
   </>
 ));
-const mIn = notation("set.in", <mo>∈</mo>, () => {
-  const [M, x] = vs("M", "x");
+const mIn = notation("set.in", mathOp("∈"), () => {
+  const { M, x } = vars;
   return (
     <>
-      For a {set} {m(M)}, we write {m(x, mIn, M)}, if {m(x)} is contained in
-      that set.
+      For a {set} {M}, we write {mrow(x, mIn, M)}, if {x} is contained in that
+      set.
     </>
   );
 });
-const emptySet = notation("set.empty", <mi>∅</mi>, () => (
+const emptySet = notation("set.empty", wrapMath(<mi>∅</mi>), () => (
   <>
     The empty set is the set that contains no elements. It is denoted{" "}
-    {m(emptySet)}.
+    {mrow(emptySet, mEq, mSet())}.
   </>
 ));
-const mIff = <mo>⟺</mo>;
 axiom("set.extensionality", "Set Extensionality", () => {
-  const [M, N, x] = vs("M", "N", "x");
+  const { M, N, x } = vars;
   return (
     <>
       Two {set}s are considered equal if they contain the same elements:{" "}
-      {m(mrow(M, mEq, N), mIff, par(mrow(x, mIn, M), mIff, mrow(x, mIn, N)))}
+      {mrow(mrow(M, mEq, N), mIff, par(mrow(x, mIn, M), mIff, mrow(x, mIn, N)))}
     </>
   );
 });
 const nat = define("nat", "Natural Numbers", () => (
   <>A natural number is a non-negative whole number.</>
 ));
-const NN = notation("nat.NN", <mi>ℕ</mi>, ({ self }) => (
+const NN = notation("nat.NN", wrapMath(<mi>ℕ</mi>), ({ self }) => (
   <>
-    i will use {self} to mean the {set} of all {nat}: {m(sl(0, 1, 2, dots))}
+    i will use {self} to mean the {set} of all {nat}: {mSet(0, 1, 2, dots)}
   </>
 ));
-const func = (name: string) => {
-  const func = (...args: ComponentChild[]) => (
-    <mrow>
-      <mi>{name}</mi>
-      <mo>&#x2061;</mo>
-      {parLst(...args)}
-    </mrow>
-  );
-  return Object.assign(func, <mi>{name}</mi>);
-};
 define("nat.peano", "The Peano Axioms", () => {
   const S = func("S");
   const phi = func("φ");
-  const n = v("n");
+  const n = mVar("n");
   return (
     <>
       One characterization of the naturals is via the Peano axioms:
       <ol>
-        <li>There exists a number {m(v(0), mIn, NN)}</li>
+        <li>There exists a number {mrow(0, mIn, NN)}</li>
         <li>
-          For every natural number {m(n, mIn, NN)}, there a successor{" "}
-          {m(S(n), mIn, NN)} (logically {m(n, mPlus, 1)})
+          For every natural number {mrow(n, mIn, NN)}, there a successor{" "}
+          {mrow(S(n), mIn, NN)} (logically {mrow(n, mPlus, 1)})
         </li>
         <li>
-          The successor function {m(S)} is {injective}, so{" "}
-          {m(mrow(S(n), mEq, S("m")), mImplies, mrow(n, mEq, "m"))}
+          The successor function {S} is {injective}, so{" "}
+          {mrow(mrow(S(n), mEq, S("m")), mImplies, mrow(n, mEq, "m"))}
         </li>
         <li>
-          {m(0)} is not the successor of any number, or for every natural number{" "}
-          {m(n, mIn, NN)}, {m(S(n), mEq, 0)} is false
+          {mrow(0)} is not the successor of any number, or for every natural
+          number {mrow(n, mIn, NN)}, {mrow(S(n), mEq, 0)} is false
         </li>
         <li>
-          Additionally induction must work in the naturals, or if {m(phi)} is a{" "}
+          Additionally induction must work in the naturals, or if {phi} is a{" "}
           {predicate} then
           <ul>
-            <li>If {m(phi(0))} is true</li>
+            <li>If {phi(0)} is true</li>
             <li>
-              And for every number {m(n, mIn, NN)},{" "}
-              {m(phi(n), mImplies, phi(S(n)))}
+              And for every number {mrow(n, mIn, NN)},{" "}
+              {mrow(phi(n), mImplies, phi(S(n)))}
             </li>
             <li>
-              then {m(phi(n))} holds for every natural {m(n, mIn, NN)}
+              then {phi(n)} holds for every natural {mrow(n, mIn, NN)}
             </li>
           </ul>
         </li>
@@ -200,12 +167,8 @@ define("nat.peano", "The Peano Axioms", () => {
   );
 });
 const predicate = "predicate";
-const mrow = (...args: VarType[]) => <mrow>{args.map(v)}</mrow>;
-const mEq = <mo>=</mo>;
-const mImplies = <mo>⇒</mo>;
 const injective = "injective";
 
-const dots = <mo>…</mo>;
 const reals = define("reals", "The real numbers", () => (
   <>
     The {set} of all real numbers. There are multiple ways to define the real
@@ -222,17 +185,17 @@ const realsCauchy = define(
   "The reals as equivalence classes of cauchy sequences",
   TODO,
 );
-const RR = notation("reals.RR", <mi>ℝ</mi>, ({ self }) => (
+const RR = notation("reals.RR", wrapMath(<mi>ℝ</mi>), ({ self }) => (
   <>
     i will use {self} to mean the {reals}
   </>
 ));
 axiom("reals.assoc", "The reals are associative", () => {
-  const [x, y, z] = vs("x", "y", "z");
+  const { x, y, z } = vars;
   return (
     <>
-      For all {m(lst(x, y, z), mIn, RR)}:{" "}
-      {m(
+      For all {mrow(lst(x, y, z), mIn, RR)}:{" "}
+      {mrow(
         mrow(par(x, mPlus, y), mPlus, z),
         mEq,
         mrow(x, mPlus, par(y, mPlus, z)),

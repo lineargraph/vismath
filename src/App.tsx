@@ -44,12 +44,6 @@ function RenderAnyStatement({ statement }: { statement: Statement }) {
           <statement.body />
         </GenericStatement>
       );
-      return (
-        <p>
-          Defining notation {statement.id} ({statement.child}){" "}
-          <statement.body />
-        </p>
-      );
 
     default:
       statement satisfies never;
